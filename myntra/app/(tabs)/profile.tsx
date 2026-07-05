@@ -16,10 +16,14 @@ import {
   LogOut,
   ChevronRight,
   Receipt,
+  Moon,
+  Sun,
+  Monitor
 } from "lucide-react-native";
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useResponsive } from "@/hooks/useResponsive";
+import { useTheme } from "@/context/ThemeContext";
 
 const menuItems = [
   { icon: Package, label: "Orders", route: "/orders" },
@@ -34,25 +38,46 @@ export default function Profile() {
   const router = useRouter();
   const { isDesktop, contentMaxWidth } = useResponsive();
   const { user, logout } = useAuth();
+  const { theme, themeMode, setThemeMode } = useTheme();
+
   const handleLogout = () => {
     logout()
     router.replace("/");
   };
 
+  const handleThemeToggle = () => {
+    if (themeMode === 'light') setThemeMode('dark');
+    else if (themeMode === 'dark') setThemeMode('system');
+    else setThemeMode('light');
+  };
+
+  const getThemeIcon = () => {
+    if (themeMode === 'dark') return Moon;
+    if (themeMode === 'light') return Sun;
+    return Monitor;
+  };
+
+  const ThemeIcon = getThemeIcon();
+  const getThemeLabel = () => {
+    if (themeMode === 'dark') return "Dark Mode";
+    if (themeMode === 'light') return "Light Mode";
+    return "System Default";
+  };
+
   if (!user) {
     return (
-      <View style={[styles.container, isDesktop && { alignItems: 'center' }]}>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }, isDesktop && { alignItems: 'center' }]}>
         <View style={[styles.innerContainer, { maxWidth: isDesktop ? contentMaxWidth : '100%', width: '100%' }]}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Profile</Text>
+        <View style={[styles.header, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border }]}>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Profile</Text>
         </View>
         <View style={styles.emptyState}>
-          <User size={64} color="#ff3f6c" />
-          <Text style={styles.emptyTitle}>
+          <User size={64} color={theme.colors.primary} />
+          <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
             Please login to view your profile
           </Text>
           <TouchableOpacity
-            style={styles.loginButton}
+            style={[styles.loginButton, { backgroundColor: theme.colors.primary }]}
             onPress={() => router.push("/login")}
           >
             <Text style={styles.loginButtonText}>LOGIN</Text>
@@ -64,42 +89,53 @@ export default function Profile() {
   }
 
   return (
-    <View style={[styles.container, isDesktop && { alignItems: 'center' }]}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }, isDesktop && { alignItems: 'center' }]}>
       <View style={[styles.innerContainer, { maxWidth: isDesktop ? contentMaxWidth : '100%', width: '100%' }]}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile</Text>
+      <View style={[styles.header, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border }]}>
+        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Profile</Text>
       </View>
 
       <ScrollView style={styles.content}>
-        <View style={styles.userInfo}>
-          <View style={styles.avatar}>
+        <View style={[styles.userInfo, { backgroundColor: theme.colors.card }]}>
+          <View style={[styles.avatar, { backgroundColor: theme.colors.primary }]}>
             <User size={40} color="#fff" />
           </View>
           <View style={styles.userDetails}>
-            <Text style={styles.userName}>{user.name}</Text>
-            <Text style={styles.userEmail}>{user.email}</Text>
+            <Text style={[styles.userName, { color: theme.colors.text }]}>{user.name}</Text>
+            <Text style={[styles.userEmail, { color: theme.colors.text }]}>{user.email}</Text>
           </View>
         </View>
 
         <View style={styles.menuSection}>
+          <TouchableOpacity
+            style={[styles.menuItem, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border }]}
+            onPress={handleThemeToggle}
+          >
+            <View style={styles.menuItemLeft}>
+              <ThemeIcon size={24} color={theme.colors.text} />
+              <Text style={[styles.menuItemLabel, { color: theme.colors.text }]}>Appearance: {getThemeLabel()}</Text>
+            </View>
+            <ChevronRight size={24} color={theme.colors.text} />
+          </TouchableOpacity>
+
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={index}
-              style={styles.menuItem}
+              style={[styles.menuItem, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border }]}
               onPress={() => router.push(item.route as any)}
             >
               <View style={styles.menuItemLeft}>
-                <item.icon size={24} color="#3e3e3e" />
-                <Text style={styles.menuItemLabel}>{item.label}</Text>
+                <item.icon size={24} color={theme.colors.text} />
+                <Text style={[styles.menuItemLabel, { color: theme.colors.text }]}>{item.label}</Text>
               </View>
-              <ChevronRight size={24} color="#3e3e3e" />
+              <ChevronRight size={24} color={theme.colors.text} />
             </TouchableOpacity>
           ))}
         </View>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <LogOut size={24} color="#ff3f6c" />
-          <Text style={styles.logoutText}>Logout</Text>
+        <TouchableOpacity style={[styles.logoutButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.primary }]} onPress={handleLogout}>
+          <LogOut size={24} color={theme.colors.primary} />
+          <Text style={[styles.logoutText, { color: theme.colors.primary }]}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
       </View>
