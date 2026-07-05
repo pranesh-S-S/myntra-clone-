@@ -60,7 +60,7 @@ export default function Bag() {
     if (!user) return;
     try {
       setIsLoading(true);
-      const res = await axios.get(`http://localhost:5000/cart/${user._id}`);
+      const res = await axios.get(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/cart/${user._id}`);
       setCart(res.data);
       setValidationIssues([]); // Clear issues on reload
     } catch (error) {
@@ -89,7 +89,7 @@ export default function Bag() {
     if (!user || !cart || newQuantity < 1) return;
 
     try {
-      const res = await axios.put(`http://localhost:5000/cart/update-quantity`, {
+      const res = await axios.put(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/cart/update-quantity`, {
         userId: user._id,
         productId,
         size,
@@ -121,7 +121,7 @@ export default function Bag() {
   const handleSaveForLater = async (productId: string, size: string) => {
     if (!user) return;
     try {
-      const res = await axios.post(`http://localhost:5000/cart/save-for-later`, {
+      const res = await axios.post(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/cart/save-for-later`, {
         userId: user._id,
         productId,
         size,
@@ -136,7 +136,7 @@ export default function Bag() {
   const handleMoveToCart = async (productId: string, size: string) => {
     if (!user) return;
     try {
-      const res = await axios.post(`http://localhost:5000/cart/move-to-cart`, {
+      const res = await axios.post(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/cart/move-to-cart`, {
         userId: user._id,
         productId,
         size,
@@ -151,7 +151,7 @@ export default function Bag() {
   const handleDelete = async (productId: string, size: string, target: "active" | "saved") => {
     if (!user) return;
     try {
-      const res = await axios.delete(`http://localhost:5000/cart/remove`, {
+      const res = await axios.delete(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/cart/remove`, {
         data: {
           userId: user._id,
           productId,
@@ -171,7 +171,7 @@ export default function Bag() {
     if (!user || !cart) return;
 
     try {
-      const res = await axios.post(`http://localhost:5000/cart/validate-checkout`, {
+      const res = await axios.post(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/cart/validate-checkout`, {
         userId: user._id,
       });
 

@@ -131,7 +131,7 @@ export default function TabTwoScreen() {
     const fetchproduct = async () => {
       try {
         setIsLoading(true);
-        const cat = await axios.get("http://localhost:5000/category");
+        const cat = await axios.get(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/category`);
         setcategories(cat.data);
       } catch (error) {
         console.log(error);

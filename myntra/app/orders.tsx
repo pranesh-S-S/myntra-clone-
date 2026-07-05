@@ -143,7 +143,7 @@ export default function Orders() {
         try {
           setIsLoading(true);
           const product = await axios.get(
-            `http://localhost:5000/order/user/${user._id}`
+            `${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/order/user/${user._id}`
           );
           setorder(product.data);
         } catch (error) {

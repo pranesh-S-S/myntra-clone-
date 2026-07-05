@@ -101,7 +101,7 @@ export default function ProductDetails() {
       // Track view for personalization engine (fire-and-forget; don't block UI)
       if (user?._id) {
         axios
-          .post("http://localhost:5000/recommendations/track-view", {
+          .post(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/recommendations/track-view`, {
             userId: user._id,
             productId: id,
           })
@@ -117,7 +117,7 @@ export default function ProductDetails() {
       try {
         setIsLoading(true);
         const product = await axios.get(
-          `http://localhost:5000/product/${id}`
+          `${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/product/${id}`
         );
         setproduct(product.data);
       } catch (error) {
@@ -168,7 +168,7 @@ export default function ProductDetails() {
     }
 
     try {
-      await axios.post(`http://localhost:5000/wishlist`, {
+      await axios.post(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/wishlist`, {
         userId: user._id,
         productId: id,
       });
@@ -191,7 +191,7 @@ export default function ProductDetails() {
     }
     try {
       setLoading(true);
-      await axios.post(`http://localhost:5000/bag`, {
+      await axios.post(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/bag`, {
         userId: user._id,
         productId: id,
         size: selectedSize,

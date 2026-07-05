@@ -13,7 +13,7 @@ import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { registerForPushNotificationsAsync } from "@/utils/notifications";
 
-const API_BASE = "http://localhost:5000/notifications";
+const API_BASE = `${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/notifications`;
 
 type NotificationContextType = {
   expoPushToken: string | null;

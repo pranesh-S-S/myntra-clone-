@@ -117,8 +117,8 @@ export default function Home() {
     const fetchproduct = async () => {
       try {
         setIsLoading(true);
-        const cat = await axios.get("http://localhost:5000/category");
-        const product = await axios.get("http://localhost:5000/product");
+        const cat = await axios.get(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/category`);
+        const product = await axios.get(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/product`);
         setcategories(cat.data);
         setproduct(product.data);
       } catch (error) {
@@ -135,7 +135,7 @@ export default function Home() {
     const fetchRecommendations = async () => {
       try {
         const params = user?._id ? `?userId=${user._id}` : "";
-        const res = await axios.get(`http://localhost:5000/recommendations${params}`);
+        const res = await axios.get(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/recommendations${params}`);
         setRecommendations(res.data.recommendations || []);
         setRecommendationSource(res.data.source || "popular");
       } catch (e) {

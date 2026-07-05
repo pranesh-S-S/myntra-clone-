@@ -9,7 +9,7 @@ import {
 } from "@/utils/recentlyViewed";
 import { useAuth } from "@/context/AuthContext";
 
-const API_BASE = "http://localhost:5000/recently-viewed";
+const API_BASE = `${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/recently-viewed`;
 
 type RecentlyViewedContextType = {
   recentlyViewed: any[];
