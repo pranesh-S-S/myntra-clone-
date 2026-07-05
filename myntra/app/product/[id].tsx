@@ -14,6 +14,7 @@ import React from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useResponsive } from "@/hooks/useResponsive";
 import { useRecentlyViewed } from "@/context/RecentlyViewedContext";
+import { useTheme } from "@/context/ThemeContext";
 import axios from "axios";
 
 // Mock product data - in a real app, this would come from an API
@@ -92,6 +93,8 @@ export default function ProductDetails() {
   const autoScrollTimer = useRef<NodeJS.Timeout>();
   const { user } = useAuth();
   const { trackView } = useRecentlyViewed();
+  const { theme } = useTheme();
+  const colors = theme.colors;
   const [product, setproduct] = useState<any>(null);
   const [iswishlist, setiswishlist] = useState(false);
 
@@ -220,14 +223,14 @@ export default function ProductDetails() {
 
   if (isLoading) {
     return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#ff3f6c" />
+      <View style={[styles.loaderContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, isDesktop && { alignItems: 'center' }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }, isDesktop && { alignItems: 'center' }]}>
       <ScrollView contentContainerStyle={isDesktop ? { maxWidth: contentMaxWidth, width: '100%', alignSelf: 'center' } : undefined}>
         <View style={isDesktop ? styles.desktopRow : undefined}>
           <View style={isDesktop ? styles.desktopImageSection : undefined}>
@@ -264,11 +267,11 @@ export default function ProductDetails() {
           </View>
 
           <View style={isDesktop ? styles.desktopDetailsSection : undefined}>
-            <View style={styles.content}>
+            <View style={[styles.content, { backgroundColor: colors.background }]}>
               <View style={styles.header}>
                 <View>
-                  <Text style={styles.brand}>{product.brand}</Text>
-                  <Text style={styles.name}>{product.name}</Text>
+                  <Text style={[styles.brand, { color: colors.textSecondary }]}>{product.brand}</Text>
+                  <Text style={[styles.name, { color: colors.text }]}>{product.name}</Text>
                 </View>
                 <TouchableOpacity
                   style={styles.wishlistButton}
@@ -276,35 +279,37 @@ export default function ProductDetails() {
                 >
                   <Heart
                     size={24}
-                    color={iswishlist ? "#ff3f6c" : "#ccc"}
-                    fill={iswishlist ? "#ff3f6c" : "none"}
+                    color={iswishlist ? colors.primary : colors.textTertiary}
+                    fill={iswishlist ? colors.primary : "none"}
                   />
                 </TouchableOpacity>
               </View>
 
               <View style={styles.priceContainer}>
-                <Text style={styles.price}>₹{product.price}</Text>
-                <Text style={styles.discount}>{product.discount}</Text>
+                <Text style={[styles.price, { color: colors.text }]}>₹{product.price}</Text>
+                <Text style={[styles.discount, { color: colors.primary }]}>{product.discount}</Text>
               </View>
 
-              <Text style={styles.description}>{product.description}</Text>
+              <Text style={[styles.description, { color: colors.textSecondary }]}>{product.description}</Text>
 
               <View style={styles.sizeSection}>
-                <Text style={styles.sizeTitle}>Select Size</Text>
+                <Text style={[styles.sizeTitle, { color: colors.text }]}>Select Size</Text>
                 <View style={styles.sizeGrid}>
                   {product.sizes.map((size: any) => (
                     <TouchableOpacity
                       key={size}
                       style={[
                         styles.sizeButton,
-                        selectedSize === size && styles.selectedSize,
+                        { borderColor: colors.border },
+                        selectedSize === size && { borderColor: colors.primary, backgroundColor: colors.primaryLight },
                       ]}
                       onPress={() => setSelectedSize(size)}
                     >
                       <Text
                         style={[
                           styles.sizeText,
-                          selectedSize === size && styles.selectedSizeText,
+                          { color: colors.text },
+                          selectedSize === size && { color: colors.primary },
                         ]}
                       >
                         {size}
@@ -316,16 +321,16 @@ export default function ProductDetails() {
 
               {isDesktop && (
                 <TouchableOpacity
-                  style={styles.addToBagButton}
+                  style={[styles.addToBagButton, { backgroundColor: colors.primary }]}
                   onPress={handleAddToBag}
                   disabled={loading}
                 >
                   {loading ? (
-                    <ActivityIndicator size="small" color="#ff3f6c" />
+                    <ActivityIndicator size="small" color={colors.primaryText} />
                   ) : (
                     <>
-                      <ShoppingBag size={20} color="#fff" />
-                      <Text style={styles.addToBagText}>ADD TO BAG</Text>
+                      <ShoppingBag size={20} color={colors.primaryText} />
+                      <Text style={[styles.addToBagText, { color: colors.primaryText }]}>ADD TO BAG</Text>
                     </>
                   )}
                 </TouchableOpacity>
@@ -336,18 +341,18 @@ export default function ProductDetails() {
       </ScrollView>
 
       {!isDesktop && (
-        <View style={styles.footer}>
+        <View style={[styles.footer, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
           <TouchableOpacity
-            style={styles.addToBagButton}
+            style={[styles.addToBagButton, { backgroundColor: colors.primary }]}
             onPress={handleAddToBag}
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator size="small" color="#ff3f6c" />
+              <ActivityIndicator size="small" color={colors.primaryText} />
             ) : (
               <>
-                <ShoppingBag size={20} color="#fff" />
-                <Text style={styles.addToBagText}>ADD TO BAG</Text>
+                <ShoppingBag size={20} color={colors.primaryText} />
+                <Text style={[styles.addToBagText, { color: colors.primaryText }]}>ADD TO BAG</Text>
               </>
             )}
           </TouchableOpacity>
@@ -360,7 +365,6 @@ export default function ProductDetails() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
   desktopRow: {
     flexDirection: "row",
@@ -377,7 +381,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#fff",
   },
   carouselContainer: {
     position: "relative",
@@ -416,13 +419,11 @@ const styles = StyleSheet.create({
   },
   brand: {
     fontSize: 16,
-    color: "#666",
     marginBottom: 5,
   },
   name: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#3e3e3e",
     marginBottom: 10,
   },
   wishlistButton: {
@@ -436,16 +437,13 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#3e3e3e",
     marginRight: 10,
   },
   discount: {
     fontSize: 16,
-    color: "#ff3f6c",
   },
   description: {
     fontSize: 16,
-    color: "#666",
     lineHeight: 24,
     marginBottom: 20,
   },
@@ -455,7 +453,6 @@ const styles = StyleSheet.create({
   sizeTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#3e3e3e",
     marginBottom: 10,
   },
   sizeGrid: {
@@ -468,29 +465,17 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     borderWidth: 1,
-    borderColor: "#ddd",
     justifyContent: "center",
     alignItems: "center",
   },
-  selectedSize: {
-    borderColor: "#ff3f6c",
-    backgroundColor: "#fff4f4",
-  },
   sizeText: {
     fontSize: 16,
-    color: "#3e3e3e",
-  },
-  selectedSizeText: {
-    color: "#ff3f6c",
   },
   footer: {
     padding: 15,
-    backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
   },
   addToBagButton: {
-    backgroundColor: "#ff3f6c",
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
@@ -499,8 +484,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   addToBagText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
   },
 });
+

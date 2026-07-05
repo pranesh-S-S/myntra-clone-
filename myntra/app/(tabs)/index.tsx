@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Search, ChevronRight } from "lucide-react-native";
@@ -13,73 +14,10 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useResponsive } from "@/hooks/useResponsive";
 import { useRecentlyViewed } from "@/context/RecentlyViewedContext";
+import { useTheme } from "@/context/ThemeContext";
 import axios from "axios";
 
-// const categories = [
-//   {
-//     id: 1,
-//     name: "Men",
-//     image:
-//       "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=500&auto=format&fit=crop",
-//   },
-//   {
-//     id: 2,
-//     name: "Women",
-//     image:
-//       "https://images.unsplash.com/photo-1618244972963-dbad0c4abf18?w=500&auto=format&fit=crop",
-//   },
-//   {
-//     id: 3,
-//     name: "Kids",
-//     image:
-//       "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=500&auto=format&fit=crop",
-//   },
-//   {
-//     id: 4,
-//     name: "Beauty",
-//     image:
-//       "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=500&auto=format&fit=crop",
-//   },
-// ];
-
-// const products = [
-//   {
-//     id: 1,
-//     name: "Casual White T-Shirt",
-//     brand: "Roadster",
-//     price: "₹499",
-//     discount: "60% OFF",
-//     image:
-//       "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&auto=format&fit=crop",
-//   },
-//   {
-//     id: 2,
-//     name: "Denim Jacket",
-//     brand: "Levis",
-//     price: "₹2499",
-//     discount: "40% OFF",
-//     image:
-//       "https://images.unsplash.com/photo-1523205771623-e0faa4d2813d?w=500&auto=format&fit=crop",
-//   },
-//   {
-//     id: 3,
-//     name: "Summer Dress",
-//     brand: "ONLY",
-//     price: "₹1299",
-//     discount: "50% OFF",
-//     image:
-//       "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=500&auto=format&fit=crop",
-//   },
-//   {
-//     id: 4,
-//     name: "Classic Sneakers",
-//     brand: "Nike",
-//     price: "₹3499",
-//     discount: "30% OFF",
-//     image:
-//       "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format&fit=crop",
-//   },
-// ];
+const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&auto=format&fit=crop";
 
 const deals = [
   {
@@ -94,18 +32,26 @@ const deals = [
     image:
       "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=500&auto=format&fit=crop",
   },
+  {
+    id: 3,
+    title: "New Arrivals",
+    image:
+      "https://images.unsplash.com/photo-1558171813-01a36e0e19d8?w=500&auto=format&fit=crop",
+  },
 ];
 
 export default function Home() {
   const router = useRouter();
-  const { isDesktop, isTablet, contentMaxWidth } = useResponsive();
+  const { isDesktop, isTablet, isMobile, contentMaxWidth } = useResponsive();
   const { recentlyViewed } = useRecentlyViewed();
+  const { theme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [product, setproduct] = useState<any>(null);
   const [categories, setcategories] = useState<any>(null);
   const { user } = useAuth();
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [recommendationSource, setRecommendationSource] = useState<string>("personalized");
+
   const handleProductPress = (productId: number) => {
     if (!user) {
       router.push("/login");
@@ -113,6 +59,7 @@ export default function Home() {
       router.push(`/product/${productId}`);
     }
   };
+
   useEffect(() => {
     const fetchproduct = async () => {
       try {
@@ -151,6 +98,18 @@ export default function Home() {
     return "48%";
   };
 
+  const getCategoryCardSize = () => {
+    if (isDesktop) return 120;
+    if (isTablet) return 110;
+    return 90;
+  };
+
+  const getDealCardWidth = () => {
+    if (isDesktop) return 380;
+    if (isTablet) return 320;
+    return 260;
+  };
+
   const getRecentlyViewedProducts = () => {
     if (!recentlyViewed || recentlyViewed.length === 0) return [];
     return recentlyViewed
@@ -166,32 +125,44 @@ export default function Home() {
       .filter((p: any) => p != null);
   };
 
+  const getProductImage = (p: any) => {
+    if (p?.images && p.images.length > 0 && p.images[0]) return p.images[0];
+    return PLACEHOLDER_IMAGE;
+  };
+
+  const categorySize = getCategoryCardSize();
+  const dealWidth = getDealCardWidth();
+  const colors = theme.colors;
+
   return (
     <ScrollView 
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={isDesktop ? { alignItems: 'center' } : undefined}
     >
-      <View style={[styles.innerContainer, { maxWidth: isDesktop ? contentMaxWidth : '100%', width: '100%' }]}>
-      <View style={styles.header}>
-        <Text style={styles.logo}>MYNTRA</Text>
-        <TouchableOpacity style={styles.searchButton}>
-          <Search size={24} color="#3e3e3e" />
+      <View style={[styles.innerContainer, { maxWidth: isDesktop ? contentMaxWidth : '100%', width: '100%', backgroundColor: colors.background }]}>
+      {/* Header */}
+      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+        <Text style={[styles.logo, { color: colors.primary }]}>MYNTRA</Text>
+        <TouchableOpacity style={[styles.searchButton, { backgroundColor: colors.surface }]}>
+          <Search size={20} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
+      {/* Banner */}
       <Image
         source={{
           uri: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=800&auto=format&fit=crop",
         }}
-        style={[styles.banner, { height: isDesktop ? 400 : 200 }]}
+        style={[styles.banner, { height: isDesktop ? 400 : isTablet ? 300 : 200 }]}
       />
 
+      {/* Categories */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>SHOP BY CATEGORY</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>SHOP BY CATEGORY</Text>
           <TouchableOpacity style={styles.viewAll}>
-            <Text style={styles.viewAllText}>View All</Text>
-            <ChevronRight size={20} color="#ff3f6c" />
+            <Text style={[styles.viewAllText, { color: colors.primary }]}>View All</Text>
+            <ChevronRight size={20} color={colors.primary} />
           </TouchableOpacity>
         </View>
         <ScrollView
@@ -202,29 +173,30 @@ export default function Home() {
           {isLoading ? (
             <ActivityIndicator
               size="large"
-              color="#ff3f6c"
+              color={colors.primary}
               style={styles.loader}
             />
           ) : !categories || categories.length === 0 ? (
-            <Text style={styles.emptyText}>No categories available</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No categories available</Text>
           ) : (
             categories.map((category: any) => (
-              <TouchableOpacity key={category._id} style={styles.categoryCard}>
+              <TouchableOpacity key={category._id} style={[styles.categoryCard, { width: categorySize }]}>
                 <Image
-                  source={{ uri: category.image }}
-                  style={styles.categoryImage}
+                  source={{ uri: category.image || PLACEHOLDER_IMAGE }}
+                  style={[styles.categoryImage, { width: categorySize, height: categorySize }]}
                 />
-                <Text style={styles.categoryName}>{category.name}</Text>
+                <Text style={[styles.categoryName, { color: colors.text }]}>{category.name}</Text>
               </TouchableOpacity>
             ))
           )}
         </ScrollView>
       </View>
 
+      {/* Recently Viewed */}
       {getRecentlyViewedProducts().length > 0 && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>RECENTLY VIEWED</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>RECENTLY VIEWED</Text>
           </View>
           <ScrollView
             horizontal
@@ -234,17 +206,17 @@ export default function Home() {
             {getRecentlyViewedProducts().map((rvProduct: any) => (
               <TouchableOpacity
                 key={rvProduct._id}
-                style={styles.categoryCard}
+                style={[styles.categoryCard, { width: categorySize }]}
                 onPress={() => handleProductPress(rvProduct._id)}
               >
                 <Image
-                  source={{ uri: rvProduct.images?.[0] || "" }}
-                  style={styles.categoryImage}
+                  source={{ uri: getProductImage(rvProduct) }}
+                  style={[styles.categoryImage, { width: categorySize, height: categorySize }]}
                 />
-                <Text style={styles.categoryName} numberOfLines={1}>
+                <Text style={[styles.categoryName, { color: colors.text }]} numberOfLines={1}>
                   {rvProduct.brand}
                 </Text>
-                <Text style={{ fontSize: 12, color: "#666", textAlign: "center" }} numberOfLines={1}>
+                <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: "center" }} numberOfLines={1}>
                   {rvProduct.name}
                 </Text>
               </TouchableOpacity>
@@ -253,11 +225,11 @@ export default function Home() {
         </View>
       )}
 
-      {/* ── You May Also Like ── */}
+      {/* Recommendations */}
       {recommendations.length > 0 && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
               {recommendationSource === "personalized"
                 ? "YOU MAY ALSO LIKE"
                 : "TRENDING PICKS"}
@@ -271,24 +243,24 @@ export default function Home() {
             {recommendations.map((rec: any) => (
               <TouchableOpacity
                 key={rec._id}
-                style={styles.categoryCard}
+                style={[styles.categoryCard, { width: categorySize }]}
                 onPress={() => handleProductPress(rec._id)}
               >
                 <Image
-                  source={{ uri: rec.images?.[0] || "" }}
-                  style={styles.categoryImage}
+                  source={{ uri: getProductImage(rec) }}
+                  style={[styles.categoryImage, { width: categorySize, height: categorySize }]}
                 />
-                <Text style={styles.categoryName} numberOfLines={1}>
+                <Text style={[styles.categoryName, { color: colors.text }]} numberOfLines={1}>
                   {rec.brand}
                 </Text>
                 <Text
-                  style={{ fontSize: 11, color: "#666", textAlign: "center" }}
+                  style={{ fontSize: 11, color: colors.textSecondary, textAlign: "center" }}
                   numberOfLines={1}
                 >
                   {rec.name}
                 </Text>
                 <Text
-                  style={{ fontSize: 12, fontWeight: "bold", color: "#ff3f6c", textAlign: "center" }}
+                  style={{ fontSize: 12, fontWeight: "bold", color: colors.primary, textAlign: "center" }}
                 >
                   ₹{rec.price}
                 </Text>
@@ -298,9 +270,10 @@ export default function Home() {
         </View>
       )}
 
+      {/* Deals */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>DEALS OF THE DAY</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>DEALS OF THE DAY</Text>
         </View>
         <ScrollView
           horizontal
@@ -308,7 +281,7 @@ export default function Home() {
           style={styles.dealsScroll}
         >
           {deals.map((deal) => (
-            <TouchableOpacity key={deal.id} style={styles.dealCard}>
+            <TouchableOpacity key={deal.id} style={[styles.dealCard, { width: dealWidth }]}>
               <Image source={{ uri: deal.image }} style={styles.dealImage} />
               <View style={styles.dealOverlay}>
                 <Text style={styles.dealTitle}>{deal.title}</Text>
@@ -318,39 +291,38 @@ export default function Home() {
         </ScrollView>
       </View>
 
+      {/* Trending Now */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>TRENDING NOW</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>TRENDING NOW</Text>
         </View>
         <View style={styles.productsGrid}>
           {isLoading ? (
             <ActivityIndicator
               size="large"
-              color="#ff3f6c"
+              color={colors.primary}
               style={styles.loader}
             />
           ) : !product || product.length === 0 ? (
-            <Text style={styles.emptyText}>No Product available</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No Product available</Text>
           ) : ( 
             <View style={styles.productsGrid}>
-              {product.map((product: any) => (
+              {product.map((p: any) => (
                 <TouchableOpacity
-                  key={product._id}
-                  style={[styles.productCard, { width: getProductCardWidth() }]}
-                  onPress={() => handleProductPress(product._id)}
+                  key={p._id}
+                  style={[styles.productCard, { width: getProductCardWidth(), backgroundColor: colors.card }]}
+                  onPress={() => handleProductPress(p._id)}
                 >
                   <Image
-                    source={{ uri: product.images[0
-                      
-                    ] }}
-                    style={styles.productImage}
+                    source={{ uri: getProductImage(p) }}
+                    style={[styles.productImage, { height: isDesktop ? 260 : isTablet ? 240 : 200 }]}
                   />
                   <View style={styles.productInfo}>
-                    <Text style={styles.brandName}>{product.brand}</Text>
-                    <Text style={styles.productName}>{product.name}</Text>
+                    <Text style={[styles.brandName, { color: colors.textSecondary }]}>{p.brand}</Text>
+                    <Text style={[styles.productName, { color: colors.text }]} numberOfLines={1}>{p.name}</Text>
                     <View style={styles.priceRow}>
-                      <Text style={styles.productPrice}>{product.price}</Text>
-                      <Text style={styles.discount}>{product.discount}</Text>
+                      <Text style={[styles.productPrice, { color: colors.text }]}>₹{p.price}</Text>
+                      <Text style={[styles.discount, { color: colors.primary }]}>{p.discount}</Text>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -367,34 +339,29 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
-  innerContainer: {
-    backgroundColor: "#fff",
-  },
+  innerContainer: {},
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     padding: 15,
     paddingTop: 50,
-    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
   },
   emptyText: {
     textAlign: "center",
     marginTop: 20,
     fontSize: 16,
-    color: "#666",
   },
   logo: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "bold",
-    color: "#3e3e3e",
+    letterSpacing: 3,
   },
   searchButton: {
-    padding: 8,
+    padding: 10,
+    borderRadius: 20,
   },
   banner: {
     width: "100%",
@@ -411,17 +378,17 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
-    color: "#3e3e3e",
+    letterSpacing: 1,
   },
   viewAll: {
     flexDirection: "row",
     alignItems: "center",
   },
   viewAllText: {
-    color: "#ff3f6c",
     marginRight: 5,
+    fontWeight: "500",
   },
   categoriesScroll: {
     marginHorizontal: -15,
@@ -429,6 +396,7 @@ const styles = StyleSheet.create({
   categoryCard: {
     width: 100,
     marginHorizontal: 8,
+    alignItems: "center",
   },
   categoryImage: {
     width: 100,
@@ -438,17 +406,17 @@ const styles = StyleSheet.create({
   categoryName: {
     textAlign: "center",
     marginTop: 8,
-    fontSize: 14,
-    color: "#3e3e3e",
+    fontSize: 13,
+    fontWeight: "500",
   },
   dealsScroll: {
     marginHorizontal: -15,
   },
   dealCard: {
     width: 280,
-    height: 150,
+    height: 160,
     marginHorizontal: 8,
-    borderRadius: 10,
+    borderRadius: 12,
     overflow: "hidden",
   },
   dealImage: {
@@ -460,7 +428,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     padding: 15,
   },
   dealTitle: {
@@ -471,39 +439,38 @@ const styles = StyleSheet.create({
   productsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    marginHorizontal: -8,
+    marginHorizontal: -4,
   },
   productCard: {
     width: "48%",
     marginHorizontal: "1%",
     marginBottom: 15,
-    backgroundColor: "#fff",
-    borderRadius: 10,
+    borderRadius: 12,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+    overflow: "hidden",
   },
   productImage: {
     width: "100%",
     height: 200,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
+    resizeMode: "cover",
   },
   productInfo: {
     padding: 10,
   },
   brandName: {
-    fontSize: 14,
-    color: "#666",
+    fontSize: 13,
     marginBottom: 2,
+    fontWeight: "500",
   },
   productName: {
-    fontSize: 16,
+    fontSize: 14,
     marginBottom: 5,
   },
   priceRow: {
@@ -511,15 +478,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   productPrice: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "bold",
-    color: "#3e3e3e",
     marginRight: 8,
   },
   discount: {
-    fontSize: 14,
-    color: "#ff3f6c",
-    fontWeight: "500",
+    fontSize: 13,
+    fontWeight: "600",
   },
   loader: {
     marginTop: 50,
