@@ -21,6 +21,7 @@ import {
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { useResponsive } from "@/hooks/useResponsive";
+import { useTheme } from "@/context/ThemeContext";
 
 const API_BASE = `${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/transactions`;
 
@@ -35,13 +36,6 @@ type Transaction = {
   createdAt: string;
 };
 
-const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  Success: { bg: "#E6F9F0", text: "#0D8050" },
-  Pending: { bg: "#FFF8E6", text: "#D9822B" },
-  Failed: { bg: "#FFE6EB", text: "#D01C53" },
-  Refunded: { bg: "#E6F0FF", text: "#1A6DCC" },
-};
-
 const PAYMENT_MODES = ["Card", "UPI", "NetBanking", "Wallet", "COD"];
 const STATUSES = ["Pending", "Success", "Failed", "Refunded"];
 
@@ -49,6 +43,8 @@ export default function TransactionsScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { isDesktop, contentMaxWidth } = useResponsive();
+  const { theme } = useTheme();
+  const colors = theme.colors;
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -63,6 +59,13 @@ export default function TransactionsScreen() {
 
   // Receipt download states
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
+    Success: { bg: theme.isDark ? "#103E2D" : "#E6F9F0", text: theme.isDark ? "#34D399" : "#0D8050" },
+    Pending: { bg: theme.isDark ? "#5C3E1A" : "#FFF8E6", text: theme.isDark ? "#FBBF24" : "#D9822B" },
+    Failed: { bg: theme.isDark ? "#4C1D24" : "#FFE6EB", text: theme.isDark ? "#FF527B" : "#D01C53" },
+    Refunded: { bg: theme.isDark ? "#1E2A4A" : "#E6F0FF", text: theme.isDark ? "#60A5FA" : "#1A6DCC" },
+  };
 
   const fetchTransactions = useCallback(
     async (cursor?: string | null, append = false) => {
@@ -159,67 +162,73 @@ export default function TransactionsScreen() {
 
   if (!user) {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <ArrowLeft size={24} color="#3e3e3e" />
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>My Transactions</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>My Transactions</Text>
           <View style={{ width: 24 }} />
         </View>
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>Please login to view transactions</Text>
+          <FileText size={64} color={colors.primary} />
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>Please login to view transactions</Text>
+          <TouchableOpacity style={[styles.primaryBtn, { backgroundColor: colors.primary }]} onPress={() => router.push("/login")}>
+            <Text style={styles.primaryBtnText}>LOGIN</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, isDesktop && { alignItems: "center" }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }, isDesktop && { alignItems: "center" }]}>
       <View
         style={[
           styles.innerContainer,
-          { maxWidth: isDesktop ? contentMaxWidth : "100%", width: "100%" },
+          { maxWidth: isDesktop ? contentMaxWidth : "100%", width: "100%", backgroundColor: colors.background },
         ]}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <ArrowLeft size={24} color="#3e3e3e" />
+        <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>My Transactions</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>My Transactions</Text>
           <View style={styles.headerActions}>
             <TouchableOpacity
               style={styles.iconButton}
               onPress={() => setShowFilters(!showFilters)}
             >
-              <Filter size={20} color={showFilters ? "#ff3f6c" : "#3e3e3e"} />
+              <Filter size={20} color={showFilters ? colors.primary : colors.text} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton} onPress={handleExportCSV}>
-              <Download size={20} color="#3e3e3e" />
+              <Download size={20} color={colors.text} />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Filter Bar */}
         {showFilters && (
-          <View style={styles.filterBar}>
+          <View style={[styles.filterBar, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
             <View style={styles.filterRow}>
-              <Text style={styles.filterLabel}>Status:</Text>
+              <Text style={[styles.filterLabel, { color: colors.textSecondary }]}>Status:</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {STATUSES.map((s) => (
                   <TouchableOpacity
                     key={s}
                     style={[
                       styles.filterChip,
-                      filterStatus === s && styles.filterChipActive,
+                      { backgroundColor: colors.card, borderColor: colors.border },
+                      filterStatus === s && { backgroundColor: colors.primary, borderColor: colors.primary },
                     ]}
                     onPress={() => setFilterStatus(filterStatus === s ? "" : s)}
                   >
                     <Text
                       style={[
                         styles.filterChipText,
-                        filterStatus === s && styles.filterChipTextActive,
+                        { color: colors.text },
+                        filterStatus === s && { color: colors.primaryText, fontWeight: "600" },
                       ]}
                     >
                       {s}
@@ -229,14 +238,15 @@ export default function TransactionsScreen() {
               </ScrollView>
             </View>
             <View style={styles.filterRow}>
-              <Text style={styles.filterLabel}>Mode:</Text>
+              <Text style={[styles.filterLabel, { color: colors.textSecondary }]}>Mode:</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {PAYMENT_MODES.map((m) => (
                   <TouchableOpacity
                     key={m}
                     style={[
                       styles.filterChip,
-                      filterPaymentMode === m && styles.filterChipActive,
+                      { backgroundColor: colors.card, borderColor: colors.border },
+                      filterPaymentMode === m && { backgroundColor: colors.primary, borderColor: colors.primary },
                     ]}
                     onPress={() =>
                       setFilterPaymentMode(filterPaymentMode === m ? "" : m)
@@ -245,7 +255,8 @@ export default function TransactionsScreen() {
                     <Text
                       style={[
                         styles.filterChipText,
-                        filterPaymentMode === m && styles.filterChipTextActive,
+                        { color: colors.text },
+                        filterPaymentMode === m && { color: colors.primaryText, fontWeight: "600" },
                       ]}
                     >
                       {m}
@@ -256,8 +267,8 @@ export default function TransactionsScreen() {
             </View>
             {(filterStatus || filterPaymentMode) && (
               <TouchableOpacity style={styles.clearFilters} onPress={resetFilters}>
-                <X size={14} color="#ff3f6c" />
-                <Text style={styles.clearFiltersText}>Clear Filters</Text>
+                <X size={14} color={colors.primary} />
+                <Text style={[styles.clearFiltersText, { color: colors.primary }]}>Clear Filters</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -266,12 +277,12 @@ export default function TransactionsScreen() {
         {/* Transaction List */}
         {isLoading ? (
           <View style={styles.emptyState}>
-            <ActivityIndicator size="large" color="#ff3f6c" />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : transactions.length === 0 ? (
           <View style={styles.emptyState}>
-            <FileText size={48} color="#ccc" />
-            <Text style={styles.emptyText}>No transactions found</Text>
+            <FileText size={48} color={colors.textTertiary} />
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No transactions found</Text>
           </View>
         ) : (
           <ScrollView
@@ -280,15 +291,15 @@ export default function TransactionsScreen() {
           >
             {transactions.map((tx) => {
               const statusColor = STATUS_COLORS[tx.status] || {
-                bg: "#f0f0f0",
-                text: "#3e3e3e",
+                bg: colors.surface,
+                text: colors.text,
               };
               return (
-                <View key={tx._id} style={styles.card}>
+                <View key={tx._id} style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
                   <View style={styles.cardTop}>
                     <View>
-                      <Text style={styles.invoiceId}>{tx.invoiceId}</Text>
-                      <Text style={styles.dateText}>{formatDate(tx.createdAt)}</Text>
+                      <Text style={[styles.invoiceId, { color: colors.text }]}>{tx.invoiceId}</Text>
+                      <Text style={[styles.dateText, { color: colors.textTertiary }]}>{formatDate(tx.createdAt)}</Text>
                     </View>
                     <View
                       style={[styles.statusBadge, { backgroundColor: statusColor.bg }]}
@@ -299,24 +310,24 @@ export default function TransactionsScreen() {
                     </View>
                   </View>
 
-                  <View style={styles.cardBottom}>
+                  <View style={[styles.cardBottom, { borderTopColor: colors.border }]}>
                     <View style={styles.cardDetails}>
-                      <Text style={styles.amountText}>
+                      <Text style={[styles.amountText, { color: colors.text }]}>
                         ₹{tx.amount.toFixed(2)}
                       </Text>
-                      <Text style={styles.paymentModeText}>{tx.paymentMode}</Text>
+                      <Text style={[styles.paymentModeText, { color: colors.textSecondary, backgroundColor: colors.surface }]}>{tx.paymentMode}</Text>
                     </View>
                     <TouchableOpacity
-                      style={styles.receiptButton}
+                      style={[styles.receiptButton, { borderColor: colors.primary }]}
                       onPress={() => handleDownloadReceipt(tx._id)}
                       disabled={downloadingId === tx._id}
                     >
                       {downloadingId === tx._id ? (
-                        <ActivityIndicator size="small" color="#ff3f6c" />
+                        <ActivityIndicator size="small" color={colors.primary} />
                       ) : (
                         <>
-                          <FileText size={16} color="#ff3f6c" />
-                          <Text style={styles.receiptButtonText}>Receipt</Text>
+                          <FileText size={16} color={colors.primary} />
+                          <Text style={[styles.receiptButtonText, { color: colors.primary }]}>Receipt</Text>
                         </>
                       )}
                     </TouchableOpacity>
@@ -333,11 +344,11 @@ export default function TransactionsScreen() {
                 disabled={loadingMore}
               >
                 {loadingMore ? (
-                  <ActivityIndicator size="small" color="#ff3f6c" />
+                  <ActivityIndicator size="small" color={colors.primary} />
                 ) : (
                   <>
-                    <ChevronDown size={16} color="#ff3f6c" />
-                    <Text style={styles.loadMoreText}>Load More</Text>
+                    <ChevronDown size={16} color={colors.primary} />
+                    <Text style={[styles.loadMoreText, { color: colors.primary }]}>Load More</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -352,7 +363,6 @@ export default function TransactionsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f8f8",
   },
   innerContainer: {
     flex: 1,
@@ -363,14 +373,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 15,
     paddingTop: 50,
-    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+  },
+  backBtn: {
+    padding: 4,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#3e3e3e",
   },
   headerActions: {
     flexDirection: "row",
@@ -380,11 +390,9 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   filterBar: {
-    backgroundColor: "#fff",
     paddingHorizontal: 15,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
   },
   filterRow: {
     flexDirection: "row",
@@ -394,7 +402,6 @@ const styles = StyleSheet.create({
   filterLabel: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#666",
     marginRight: 10,
     minWidth: 50,
   },
@@ -403,21 +410,10 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
     marginRight: 8,
-    backgroundColor: "#fff",
-  },
-  filterChipActive: {
-    backgroundColor: "#ff3f6c",
-    borderColor: "#ff3f6c",
   },
   filterChipText: {
     fontSize: 13,
-    color: "#3e3e3e",
-  },
-  filterChipTextActive: {
-    color: "#fff",
-    fontWeight: "600",
   },
   clearFilters: {
     flexDirection: "row",
@@ -426,7 +422,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   clearFiltersText: {
-    color: "#ff3f6c",
     fontSize: 13,
     marginLeft: 4,
   },
@@ -435,15 +430,10 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   card: {
-    backgroundColor: "#fff",
     borderRadius: 12,
+    borderWidth: 1,
     padding: 16,
     marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
   },
   cardTop: {
     flexDirection: "row",
@@ -454,11 +444,9 @@ const styles = StyleSheet.create({
   invoiceId: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#3e3e3e",
   },
   dateText: {
     fontSize: 12,
-    color: "#999",
     marginTop: 2,
   },
   statusBadge: {
@@ -475,7 +463,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: "#f5f5f5",
     paddingTop: 12,
   },
   cardDetails: {
@@ -486,12 +473,9 @@ const styles = StyleSheet.create({
   amountText: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#3e3e3e",
   },
   paymentModeText: {
     fontSize: 13,
-    color: "#888",
-    backgroundColor: "#f5f5f5",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -500,14 +484,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#ff3f6c",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
     gap: 6,
   },
   receiptButtonText: {
-    color: "#ff3f6c",
     fontSize: 13,
     fontWeight: "600",
   },
@@ -519,7 +501,6 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   loadMoreText: {
-    color: "#ff3f6c",
     fontSize: 14,
     fontWeight: "600",
   },
@@ -531,7 +512,23 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: "#999",
     marginTop: 16,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  primaryBtn: {
+    paddingHorizontal: 40,
+    paddingVertical: 15,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  primaryBtnText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
