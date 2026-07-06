@@ -165,31 +165,65 @@ export default function Home() {
             <ChevronRight size={20} color={colors.primary} />
           </TouchableOpacity>
         </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoriesScroll}
-        >
-          {isLoading ? (
-            <ActivityIndicator
-              size="large"
-              color={colors.primary}
-              style={styles.loader}
-            />
-          ) : !categories || categories.length === 0 ? (
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No categories available</Text>
-          ) : (
-            categories.map((category: any) => (
-              <TouchableOpacity key={category._id} style={[styles.categoryCard, { width: categorySize }]}>
-                <Image
-                  source={{ uri: category.image || PLACEHOLDER_IMAGE }}
-                  style={[styles.categoryImage, { width: categorySize, height: categorySize }]}
-                />
-                <Text style={[styles.categoryName, { color: colors.text }]}>{category.name}</Text>
-              </TouchableOpacity>
-            ))
-          )}
-        </ScrollView>
+        {isDesktop ? (
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%', paddingVertical: 10 }}>
+            {isLoading ? (
+              <ActivityIndicator size="large" color={colors.primary} />
+            ) : !categories || categories.length === 0 ? (
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No categories available</Text>
+            ) : (
+              categories.map((category: any) => (
+                <TouchableOpacity
+                  key={category._id}
+                  style={[styles.categoryCard, { width: categorySize }]}
+                  onPress={() => router.push({
+                    pathname: "/categories",
+                    params: { selectedCategory: category._id }
+                  })}
+                >
+                  <Image
+                    source={{ uri: category.image || PLACEHOLDER_IMAGE }}
+                    style={[styles.categoryImage, { width: categorySize, height: categorySize }]}
+                  />
+                  <Text style={[styles.categoryName, { color: colors.text }]}>{category.name}</Text>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
+        ) : (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.categoriesScroll}
+          >
+            {isLoading ? (
+              <ActivityIndicator
+                size="large"
+                color={colors.primary}
+                style={styles.loader}
+              />
+            ) : !categories || categories.length === 0 ? (
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No categories available</Text>
+            ) : (
+              categories.map((category: any) => (
+                <TouchableOpacity
+                  key={category._id}
+                  style={[styles.categoryCard, { width: categorySize }]}
+                  onPress={() => router.push({
+                    pathname: "/categories",
+                    params: { selectedCategory: category._id }
+                  })}
+                >
+                  <Image
+                    source={{ uri: category.image || PLACEHOLDER_IMAGE }}
+                    style={[styles.categoryImage, { width: categorySize, height: categorySize }]}
+                  />
+                  <Text style={[styles.categoryName, { color: colors.text }]}>{category.name}</Text>
+                </TouchableOpacity>
+              ))
+            )}
+          </ScrollView>
+        )}
       </View>
 
       {/* Recently Viewed */}
@@ -202,25 +236,39 @@ export default function Home() {
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.categoriesScroll}
+            contentContainerStyle={{ paddingHorizontal: 8 }}
           >
-            {getRecentlyViewedProducts().map((rvProduct: any) => (
-              <TouchableOpacity
-                key={rvProduct._id}
-                style={[styles.categoryCard, { width: categorySize }]}
-                onPress={() => handleProductPress(rvProduct._id)}
-              >
-                <Image
-                  source={{ uri: getProductImage(rvProduct) }}
-                  style={[styles.categoryImage, { width: categorySize, height: categorySize }]}
-                />
-                <Text style={[styles.categoryName, { color: colors.text }]} numberOfLines={1}>
-                  {rvProduct.brand}
-                </Text>
-                <Text style={{ fontSize: 11, color: colors.textSecondary, textAlign: "center" }} numberOfLines={1}>
-                  {rvProduct.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {getRecentlyViewedProducts().map((rvProduct: any) => {
+              const cardWidth = isDesktop ? 220 : isTablet ? 180 : 140;
+              const imageHeight = isDesktop ? 260 : isTablet ? 200 : 160;
+              return (
+                <TouchableOpacity
+                  key={rvProduct._id}
+                  style={[
+                    styles.sliderProductCard,
+                    { width: cardWidth, backgroundColor: colors.card, borderColor: colors.border }
+                  ]}
+                  onPress={() => handleProductPress(rvProduct._id)}
+                >
+                  <Image
+                    source={{ uri: getProductImage(rvProduct) }}
+                    style={[styles.sliderProductImage, { height: imageHeight }]}
+                  />
+                  <View style={styles.sliderProductInfo}>
+                    <Text style={[styles.sliderBrand, { color: colors.textSecondary }]} numberOfLines={1}>
+                      {rvProduct.brand}
+                    </Text>
+                    <Text style={[styles.sliderName, { color: colors.text }]} numberOfLines={1}>
+                      {rvProduct.name}
+                    </Text>
+                    <View style={styles.sliderPriceRow}>
+                      <Text style={[styles.sliderPrice, { color: colors.text }]}>₹{rvProduct.price}</Text>
+                      <Text style={[styles.sliderDiscount, { color: colors.primary }]}>{rvProduct.discount || "50% OFF"}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
       )}
@@ -239,33 +287,39 @@ export default function Home() {
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.categoriesScroll}
+            contentContainerStyle={{ paddingHorizontal: 8 }}
           >
-            {recommendations.map((rec: any) => (
-              <TouchableOpacity
-                key={rec._id}
-                style={[styles.categoryCard, { width: categorySize }]}
-                onPress={() => handleProductPress(rec._id)}
-              >
-                <Image
-                  source={{ uri: getProductImage(rec) }}
-                  style={[styles.categoryImage, { width: categorySize, height: categorySize }]}
-                />
-                <Text style={[styles.categoryName, { color: colors.text }]} numberOfLines={1}>
-                  {rec.brand}
-                </Text>
-                <Text
-                  style={{ fontSize: 11, color: colors.textSecondary, textAlign: "center" }}
-                  numberOfLines={1}
+            {recommendations.map((rec: any) => {
+              const cardWidth = isDesktop ? 220 : isTablet ? 180 : 140;
+              const imageHeight = isDesktop ? 260 : isTablet ? 200 : 160;
+              return (
+                <TouchableOpacity
+                  key={rec._id}
+                  style={[
+                    styles.sliderProductCard,
+                    { width: cardWidth, backgroundColor: colors.card, borderColor: colors.border }
+                  ]}
+                  onPress={() => handleProductPress(rec._id)}
                 >
-                  {rec.name}
-                </Text>
-                <Text
-                  style={{ fontSize: 12, fontWeight: "bold", color: colors.primary, textAlign: "center" }}
-                >
-                  ₹{rec.price}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Image
+                    source={{ uri: getProductImage(rec) }}
+                    style={[styles.sliderProductImage, { height: imageHeight }]}
+                  />
+                  <View style={styles.sliderProductInfo}>
+                    <Text style={[styles.sliderBrand, { color: colors.textSecondary }]} numberOfLines={1}>
+                      {rec.brand}
+                    </Text>
+                    <Text style={[styles.sliderName, { color: colors.text }]} numberOfLines={1}>
+                      {rec.name}
+                    </Text>
+                    <View style={styles.sliderPriceRow}>
+                      <Text style={[styles.sliderPrice, { color: colors.text }]}>₹{rec.price}</Text>
+                      <Text style={[styles.sliderDiscount, { color: colors.primary }]}>{rec.discount || "50% OFF"}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
       )}
@@ -488,5 +542,46 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginTop: 50,
+  },
+  sliderProductCard: {
+    marginHorizontal: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: "hidden",
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  sliderProductImage: {
+    width: "100%",
+    resizeMode: "cover",
+  },
+  sliderProductInfo: {
+    padding: 10,
+  },
+  sliderBrand: {
+    fontSize: 12,
+    fontWeight: "bold",
+    marginBottom: 2,
+  },
+  sliderName: {
+    fontSize: 13,
+    marginBottom: 6,
+  },
+  sliderPriceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  sliderPrice: {
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  sliderDiscount: {
+    fontSize: 12,
+    fontWeight: "600",
   },
 });
