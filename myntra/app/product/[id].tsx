@@ -240,7 +240,10 @@ export default function ProductDetails() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }, isDesktop && { alignItems: 'center' }]}>
-      <ScrollView contentContainerStyle={isDesktop ? { maxWidth: contentMaxWidth, width: '100%', alignSelf: 'center' } : undefined}>
+      <ScrollView
+        style={{ flex: 1, width: "100%" }}
+        contentContainerStyle={isDesktop ? { maxWidth: contentMaxWidth, width: '100%', alignSelf: 'center' } : undefined}
+      >
         <View style={isDesktop ? styles.desktopRow : undefined}>
           <View style={isDesktop ? styles.desktopImageSection : undefined}>
             <View style={styles.carouselContainer}>

@@ -19,12 +19,18 @@ const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1441986300917-64674
 
 export default function Wishlist() {
   const router = useRouter();
-  const { isDesktop, contentMaxWidth } = useResponsive();
+  const { isDesktop, isTablet, contentMaxWidth } = useResponsive();
   const { theme } = useTheme();
   const colors = theme.colors;
   const { user } = useAuth();
   const [wishlist, setwishlist] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const getWishlistCardWidth = () => {
+    if (isDesktop) return "23%";
+    if (isTablet) return "31%";
+    return "48%";
+  };
 
   useEffect(() => {
     fetchproduct();
@@ -117,22 +123,26 @@ export default function Wishlist() {
             </Text>
           </View>
         ) : (
-          wishlist.map((item: any) => (
-            <View key={item._id} style={[styles.wishlistItem, { backgroundColor: colors.card }]}>
-              <Image source={{ uri: getProductImage(item.productId) }} style={styles.itemImage} />
-              <View style={styles.itemInfo}>
-                <Text style={[styles.brandName, { color: colors.textSecondary }]}>{item.productId.brand}</Text>
-                <Text style={[styles.itemName, { color: colors.text }]} numberOfLines={2}>{item.productId.name}</Text>
-                <View style={styles.priceContainer}>
-                  <Text style={[styles.price, { color: colors.text }]}>₹{item.productId.price}</Text>
-                  <Text style={[styles.discount, { color: colors.primary }]}>{item.productId.discount}</Text>
+          <View style={styles.wishlistGrid}>
+            {wishlist.map((item: any) => (
+              <View key={item._id} style={[styles.wishlistCard, { width: getWishlistCardWidth(), backgroundColor: colors.card, borderColor: colors.border }]}>
+                <View style={styles.imageContainer}>
+                  <Image source={{ uri: getProductImage(item.productId) }} style={styles.itemImage} />
+                  <TouchableOpacity style={[styles.removeButton, { backgroundColor: colors.surface + "D9" }]} onPress={() => handledelete(item._id)}>
+                    <Trash2 size={16} color={colors.primary} />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.itemInfo}>
+                  <Text style={[styles.brandName, { color: colors.textSecondary }]} numberOfLines={1}>{item.productId.brand}</Text>
+                  <Text style={[styles.itemName, { color: colors.text }]} numberOfLines={1}>{item.productId.name}</Text>
+                  <View style={styles.priceContainer}>
+                    <Text style={[styles.price, { color: colors.text }]}>₹{item.productId.price}</Text>
+                    <Text style={[styles.discount, { color: colors.primary }]}>{item.productId.discount}</Text>
+                  </View>
                 </View>
               </View>
-              <TouchableOpacity style={styles.removeButton} onPress={() => handledelete(item._id)}>
-                <Trash2 size={22} color={colors.primary} />
-              </TouchableOpacity>
-            </View>
-          ))
+            ))}
+          </View>
         )}
         </ScrollView>
       </View>
@@ -195,51 +205,69 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  wishlistItem: {
+  wishlistGrid: {
     flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginHorizontal: -4,
+  },
+  wishlistCard: {
     borderRadius: 12,
-    marginBottom: 12,
+    borderWidth: 1,
+    marginBottom: 15,
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 3,
-    overflow: "hidden",
+  },
+  imageContainer: {
+    position: "relative",
   },
   itemImage: {
-    width: 100,
-    height: 120,
+    width: "100%",
+    height: 180,
     resizeMode: "cover",
   },
   itemInfo: {
-    flex: 1,
-    padding: 12,
-    justifyContent: "center",
+    padding: 10,
   },
   brandName: {
     fontSize: 13,
-    marginBottom: 4,
+    marginBottom: 2,
     fontWeight: "500",
   },
   itemName: {
-    fontSize: 15,
-    marginBottom: 8,
+    fontSize: 14,
+    marginBottom: 6,
   },
   priceContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
   price: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "bold",
-    marginRight: 10,
+    marginRight: 8,
   },
   discount: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "600",
   },
   removeButton: {
-    padding: 15,
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: "center",
+    alignItems: "center",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
 });
