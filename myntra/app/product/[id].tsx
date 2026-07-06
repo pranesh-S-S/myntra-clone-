@@ -81,6 +81,8 @@ import axios from "axios";
 //   },
 // };
 
+const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&auto=format&fit=crop";
+
 export default function ProductDetails() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
@@ -97,6 +99,7 @@ export default function ProductDetails() {
   const colors = theme.colors;
   const [product, setproduct] = useState<any>(null);
   const [iswishlist, setiswishlist] = useState(false);
+  const [otherProducts, setOtherProducts] = useState<any[]>([]);
 
   useEffect(() => {
     if (id && typeof id === "string") {
@@ -114,15 +117,21 @@ export default function ProductDetails() {
   }, [id, user?._id, trackView]);
 
   useEffect(() => {
-    // Simulate loading time
-
-    const fetchproduct = async () => {
+    const fetchproductAndOthers = async () => {
+      if (!id) return;
       try {
         setIsLoading(true);
-        const product = await axios.get(
+        // Fetch current product
+        const productRes = await axios.get(
           `${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/product/${id}`
         );
-        setproduct(product.data);
+        setproduct(productRes.data);
+
+        // Fetch all products for recommendations
+        const listRes = await axios.get(
+          `${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/product`
+        );
+        setOtherProducts((listRes.data || []).filter((p: any) => p._id !== id));
       } catch (error) {
         console.log(error);
         setIsLoading(false);
@@ -130,8 +139,8 @@ export default function ProductDetails() {
         setIsLoading(false);
       }
     };
-    fetchproduct();
-  }, []);
+    fetchproductAndOthers();
+  }, [id]);
 
   useEffect(() => {
     // Start auto-scroll
@@ -338,6 +347,48 @@ export default function ProductDetails() {
             </View>
           </View>
         </View>
+
+        {/* Similar/Other Products Section */}
+        {otherProducts.length > 0 && (
+          <View style={[styles.similarSection, { borderTopColor: colors.border }]}>
+            <Text style={[styles.similarTitle, { color: colors.text }]}>YOU MAY ALSO LIKE</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.similarScroll}
+              contentContainerStyle={{ paddingHorizontal: 20 }}
+            >
+              {otherProducts.map((p: any) => (
+                <TouchableOpacity
+                  key={p._id}
+                  style={[styles.similarCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+                  onPress={() => {
+                    router.push(`/product/${p._id}`);
+                    setCurrentImageIndex(0);
+                    setSelectedSize("");
+                  }}
+                >
+                  <Image
+                    source={{ uri: (p.images && p.images[0]) || PLACEHOLDER_IMAGE }}
+                    style={styles.similarImage}
+                  />
+                  <View style={styles.similarInfo}>
+                    <Text style={[styles.similarBrand, { color: colors.textSecondary }]} numberOfLines={1}>
+                      {p.brand}
+                    </Text>
+                    <Text style={[styles.similarName, { color: colors.text }]} numberOfLines={1}>
+                      {p.name}
+                    </Text>
+                    <View style={styles.similarPriceRow}>
+                      <Text style={[styles.similarPrice, { color: colors.text }]}>₹{p.price}</Text>
+                      <Text style={[styles.similarDiscount, { color: colors.primary }]}>{p.discount}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
       </ScrollView>
 
       {!isDesktop && (
@@ -486,6 +537,59 @@ const styles = StyleSheet.create({
   addToBagText: {
     fontSize: 16,
     fontWeight: "bold",
+  },
+  similarSection: {
+    paddingVertical: 30,
+    borderTopWidth: 1,
+    marginTop: 20,
+  },
+  similarTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+    paddingHorizontal: 20,
+    letterSpacing: 1,
+  },
+  similarScroll: {
+    marginHorizontal: 0,
+  },
+  similarCard: {
+    width: 140,
+    marginRight: 15,
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: "hidden",
+    marginBottom: 5,
+  },
+  similarImage: {
+    width: "100%",
+    height: 150,
+    resizeMode: "cover",
+  },
+  similarInfo: {
+    padding: 8,
+  },
+  similarBrand: {
+    fontSize: 12,
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+  similarName: {
+    fontSize: 13,
+    marginBottom: 4,
+  },
+  similarPriceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  similarPrice: {
+    fontSize: 13,
+    fontWeight: "bold",
+  },
+  similarDiscount: {
+    fontSize: 11,
+    fontWeight: "600",
   },
 });
 

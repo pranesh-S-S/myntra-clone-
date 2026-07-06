@@ -32,6 +32,12 @@ export default function TabTwoScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setcategories] = useState<any>(null);
 
+  const getCategoryCardWidth = () => {
+    if (isDesktop) return "23%";
+    if (isTablet) return "31%";
+    return "48%";
+  };
+
   useEffect(() => {
     const fetchproduct = async () => {
       try {
@@ -161,7 +167,7 @@ export default function TabTwoScreen() {
             {filtercategories?.map((category: any) => (
               <TouchableOpacity
                 key={category._id}
-                style={[styles.categoryCard, { backgroundColor: colors.card }]}
+                style={[styles.categoryCard, { width: getCategoryCardWidth(), backgroundColor: colors.card }]}
                 onPress={() => handleCategorySelect(category._id)}
               >
                 <Image
@@ -283,6 +289,10 @@ const styles = StyleSheet.create({
   },
   categoriesGrid: {
     padding: 15,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
+    gap: 12,
   },
   categoryCard: {
     borderRadius: 12,
