@@ -1,8 +1,8 @@
 import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { Heart, Trash2 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useResponsive } from "@/hooks/useResponsive";
 import { useTheme } from "@/context/ThemeContext";
 import {
@@ -32,11 +32,7 @@ export default function Wishlist() {
     return "48%";
   };
 
-  useEffect(() => {
-    fetchproduct();
-  }, [user]);
-
-  const fetchproduct = async () => {
+  const fetchproduct = useCallback(async () => {
     if (user) {
       try {
         setIsLoading(true);
@@ -51,7 +47,13 @@ export default function Wishlist() {
         setIsLoading(false);
       }
     }
-  };
+  }, [user]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchproduct();
+    }, [fetchproduct])
+  );
 
   const handledelete = async (itemid: any) => {
     try {

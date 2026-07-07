@@ -271,31 +271,21 @@ async function checkReceipts() {
 // ─── Cart Abandonment Scanner ────────────────────────────────────────────────
 
 async function scanCartAbandonment() {
-  const Bag = require("../models/Bag");
+  const Cart = require("../models/Cart");
   const Order = require("../models/Order");
 
   const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
 
   try {
-    // Find users who have bag items updated more than 2 hours ago
-    const bagItems = await Bag.aggregate([
-      {
-        $group: {
-          _id: "$userId",
-          lastActivity: { $max: "$updatedAt" },
-          itemCount: { $sum: 1 },
-        },
-      },
-      {
-        $match: {
-          lastActivity: { $lte: twoHoursAgo },
-          itemCount: { $gt: 0 },
-        },
-      },
-    ]);
+    // Find carts where items array is not empty and was updated more than 2 hours ago
+    const carts = await Cart.find({
+      "items.0": { $exists: true },
+      updatedAt: { $lte: twoHoursAgo },
+    });
 
-    for (const entry of bagItems) {
-      const userId = entry._id;
+    for (const cart of carts) {
+      const userId = cart.userId;
+      const itemCount = cart.items.length;
 
       // Check if we already sent a cart abandonment notification recently (last 24h)
       const recentNotif = await NotificationQueue.findOne({
@@ -319,7 +309,7 @@ async function scanCartAbandonment() {
         userId,
         "cart_abandonment",
         "You left items in your bag! 🛍️",
-        `You have ${entry.itemCount} item(s) waiting in your bag. Complete your purchase before they're gone!`,
+        `You have ${itemCount} item(s) waiting in your bag. Complete your purchase before they're gone!`,
         { screen: "bag" }
       );
 

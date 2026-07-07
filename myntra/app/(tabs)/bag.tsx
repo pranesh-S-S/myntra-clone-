@@ -8,9 +8,9 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { ShoppingBag, Minus, Plus, Trash2, ShieldAlert, Bookmark } from "lucide-react-native";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useResponsive } from "@/hooks/useResponsive";
 import { useTheme } from "@/context/ThemeContext";
@@ -52,11 +52,7 @@ export default function Bag() {
   const [cart, setCart] = useState<CartType | null>(null);
   const [validationIssues, setValidationIssues] = useState<any[]>([]);
 
-  useEffect(() => {
-    fetchCart();
-  }, [user]);
-
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
     if (!user) return;
     try {
       setIsLoading(true);
@@ -68,7 +64,13 @@ export default function Bag() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchCart();
+    }, [fetchCart])
+  );
 
   // Compute active items total
   const total = useMemo(() => {

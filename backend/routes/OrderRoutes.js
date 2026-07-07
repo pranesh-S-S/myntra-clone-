@@ -1,5 +1,6 @@
 const express = require("express");
 const Bag = require("../models/Bag");
+const Cart = require("../models/Cart");
 const Order = require("../models/Order");
 const router = express.Router();
 const mongoose = require("mongoose");
@@ -45,32 +46,35 @@ function genrateRandomTracking() {
 router.post("/create/:userId", async (req, res) => {
   try {
     const userid = req.params.userId;
-    const bag = await Bag.find({ userId: userid }).populate("productId");
-    if (bag.length === 0) {
+    const cart = await Cart.findOne({ userId: userid }).populate("items.productId");
+    if (!cart || cart.items.length === 0) {
       return res.status(400).json({ message: "No item in the bag" });
     }
-    const orderitem = bag.map((item) => ({
+    const orderitem = cart.items.map((item) => ({
       productId: item.productId._id,
       size: item.size,
       price: item.productId.price,
       quantity: item.quantity,
     }));
     const total = orderitem.reduce(
-      (sum, item) => sum + item.price + item.quantity,
+      (sum, item) => sum + item.price * item.quantity,
       0
     );
     const newOrder = new Order({
       userId: userid,
       date: new Date().toISOString(),
       status: "Processing",
-      item: orderitem,
+      items: orderitem,
       total: total,
       shippingAddress: req.body.shippingAddress,
       paymentMethod:req.body.paymentMethod,
       tracking: genrateRandomTracking(),
     });
     await newOrder.save();
-    await Bag.deleteMany({ userId: userid });
+    
+    // Clear active items from cart
+    cart.items = [];
+    await cart.save();
 
     // Enqueue push notification for order confirmation
     try {

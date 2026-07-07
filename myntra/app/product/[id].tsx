@@ -203,7 +203,7 @@ export default function ProductDetails() {
     }
     try {
       setLoading(true);
-      await axios.post(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/bag`, {
+      await axios.post(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/cart/add`, {
         userId: user._id,
         productId: id,
         size: selectedSize,
