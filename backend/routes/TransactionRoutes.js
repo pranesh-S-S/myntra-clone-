@@ -315,51 +315,66 @@ router.get("/receipt/download", async (req, res) => {
 
     // Table Header
     const tableTop = doc.y;
-    doc.fontSize(12).text("Description", 50, tableTop, { bold: true });
+    doc.fontSize(12).fillColor("#000000");
+    doc.text("Description", 50, tableTop, { bold: true });
     doc.text("Status", 300, tableTop, { bold: true });
     doc.text("Mode", 400, tableTop, { bold: true });
-    doc.text("Amount", 480, tableTop, { bold: true, align: "right" });
-    doc.moveDown(0.5);
-
+    doc.text("Amount", 480, tableTop, { bold: true, align: "right", width: 70 });
+    
+    // Line below header
+    doc.y = tableTop + 18;
     doc
       .strokeColor("#E0E0E0")
       .lineWidth(1)
       .moveTo(50, doc.y)
       .lineTo(550, doc.y)
       .stroke();
-    doc.moveDown(0.8);
-
+    
     // Table Row Data
-    const rowTop = doc.y;
-    doc.text(`Shopping Checkout Order #${tx.orderId}`, 50, rowTop);
+    const rowTop = doc.y + 10;
+    doc.fontSize(10);
+    doc.text(`Shopping Checkout Order #${tx.orderId}`, 50, rowTop, { width: 240 });
     doc.text(tx.status, 300, rowTop);
     doc.text(tx.paymentMode, 400, rowTop);
-    doc.text(`₹${tx.amount.toFixed(2)}`, 480, rowTop, { align: "right" });
+    doc.text(`₹${tx.amount.toFixed(2)}`, 480, rowTop, { align: "right", width: 70 });
 
-    doc.moveDown(2);
+    // Line below row
+    doc.y = rowTop + 20;
+    doc
+      .strokeColor("#E0E0E0")
+      .lineWidth(1)
+      .moveTo(50, doc.y)
+      .lineTo(550, doc.y)
+      .stroke();
+
+    // Whitespace below table
+    doc.y += 20;
 
     // Total Amount Box
+    const boxY = doc.y;
     doc
-      .rect(350, doc.y, 200, 50)
+      .rect(350, boxY, 200, 50)
       .fillAndStroke("#F9F9F9", "#D01C53");
     
     doc
       .fillColor("#000000")
       .fontSize(12)
-      .text("Total Paid:", 370, doc.y - 40);
+      .text("Total Paid:", 370, boxY + 18);
     
     doc
       .fillColor("#D01C53")
       .fontSize(16)
-      .text(`₹${tx.amount.toFixed(2)}`, 430, doc.y - 43, { align: "right" });
+      .text(`₹${tx.amount.toFixed(2)}`, 450, boxY + 16, { align: "right", width: 80 });
 
-    doc.moveDown(4);
+    // Position cursor below the box
+    doc.y = boxY + 90;
 
     // Footer
     doc
       .fillColor("#888888")
       .fontSize(10)
       .text("This receipt was generated electronically and is valid without physical signature.", { align: "center" });
+    doc.moveDown(0.5);
     doc.text("Thank you for shopping with Myntra!", { align: "center" });
 
     doc.end();
