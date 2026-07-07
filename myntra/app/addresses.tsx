@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useResponsive } from "@/hooks/useResponsive";
 import { useTheme } from "@/context/ThemeContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Address = {
   id: string;
@@ -57,6 +58,31 @@ export default function Addresses() {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [pincode, setPincode] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      loadAddresses();
+    }
+  }, [user]);
+
+  const loadAddresses = async () => {
+    try {
+      const stored = await AsyncStorage.getItem(`@addresses_${user._id}`);
+      if (stored) {
+        setAddresses(JSON.parse(stored));
+      }
+    } catch (err) {
+      console.error("Failed to load addresses:", err);
+    }
+  };
+
+  const saveAddresses = async (newAddrs: Address[]) => {
+    try {
+      await AsyncStorage.setItem(`@addresses_${user._id}`, JSON.stringify(newAddrs));
+    } catch (err) {
+      console.error("Failed to save addresses:", err);
+    }
+  };
 
   const showAlert = (title: string, message: string) => {
     if (Platform.OS === "web") {
@@ -100,11 +126,14 @@ export default function Addresses() {
       isDefault: addresses.length === 0,
     };
 
+    let updated;
     if (editingId) {
-      setAddresses(addresses.map((a) => (a.id === editingId ? { ...newAddress, isDefault: a.isDefault } : a)));
+      updated = addresses.map((a) => (a.id === editingId ? { ...newAddress, isDefault: a.isDefault } : a));
     } else {
-      setAddresses([...addresses, newAddress]);
+      updated = [...addresses, newAddress];
     }
+    setAddresses(updated);
+    saveAddresses(updated);
     resetForm();
   };
 
@@ -128,10 +157,13 @@ export default function Addresses() {
       remaining[0].isDefault = true;
     }
     setAddresses(remaining);
+    saveAddresses(remaining);
   };
 
   const handleSetDefault = (id: string) => {
-    setAddresses(addresses.map((a) => ({ ...a, isDefault: a.id === id })));
+    const updated = addresses.map((a) => ({ ...a, isDefault: a.id === id }));
+    setAddresses(updated);
+    saveAddresses(updated);
   };
 
   const getLabelIcon = (l: string) => {

@@ -7,8 +7,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  BackHandler,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import {
   Package,
   ChevronRight,
@@ -27,6 +28,7 @@ import { useResponsive } from "@/hooks/useResponsive";
 
 export default function Orders() {
   const router = useRouter();
+  const { fromCheckout } = useLocalSearchParams();
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
@@ -34,6 +36,28 @@ export default function Orders() {
   const { theme } = useTheme();
   const { isDesktop, contentMaxWidth } = useResponsive();
   const colors = theme.colors;
+
+  const handleBack = () => {
+    if (fromCheckout === "true") {
+      router.replace("/");
+    } else {
+      router.back();
+    }
+  };
+
+  useEffect(() => {
+    if (fromCheckout === "true") {
+      const backAction = () => {
+        router.replace("/");
+        return true;
+      };
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        backAction
+      );
+      return () => backHandler.remove();
+    }
+  }, [fromCheckout]);
 
   useEffect(() => {
     const fetchorder = async () => {
@@ -71,7 +95,7 @@ export default function Orders() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
             <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>My Orders</Text>
@@ -92,7 +116,7 @@ export default function Orders() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
             <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>My Orders</Text>
@@ -110,7 +134,7 @@ export default function Orders() {
     <View style={[styles.container, { backgroundColor: colors.background }, isDesktop && { alignItems: "center" }]}>
       <View style={{ maxWidth: isDesktop ? contentMaxWidth : "100%", width: "100%", flex: 1 }}>
         <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
             <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>My Orders</Text>

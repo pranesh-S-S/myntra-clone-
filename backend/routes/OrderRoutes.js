@@ -2,6 +2,7 @@ const express = require("express");
 const Bag = require("../models/Bag");
 const Cart = require("../models/Cart");
 const Order = require("../models/Order");
+const Transaction = require("../models/Transaction");
 const router = express.Router();
 const mongoose = require("mongoose");
 const notificationService = require("../services/notificationService");
@@ -71,6 +72,28 @@ router.post("/create/:userId", async (req, res) => {
       tracking: genrateRandomTracking(),
     });
     await newOrder.save();
+    
+    // Create corresponding transaction details to populate transaction screens and CSV exports
+    try {
+      const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      const randomHexStr = Math.random().toString(16).slice(2, 6).toUpperCase();
+      const invoiceId = `INV-${todayStr}-${randomHexStr}`;
+
+      const transaction = new Transaction({
+        userId: userid,
+        orderId: newOrder._id,
+        paymentGateway: "Stripe",
+        paymentMode: req.body.paymentMethod || "Card",
+        amount: total,
+        currency: "INR",
+        status: "Success",
+        gatewayTransactionId: "ch_" + Math.random().toString(36).substring(2, 15),
+        invoiceId: invoiceId,
+      });
+      await transaction.save();
+    } catch (txErr) {
+      console.warn("Failed to create transaction for order:", txErr);
+    }
     
     // Clear active items from cart
     cart.items = [];
