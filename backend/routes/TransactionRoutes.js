@@ -278,7 +278,7 @@ router.get("/receipt/download", async (req, res) => {
     const doc = new PDFDocument({ margin: 50 });
 
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename=Receipt_${tx.invoiceId}.pdf`);
+    res.setHeader("Content-Disposition", `inline; filename=Receipt_${tx.invoiceId}.pdf`);
 
     doc.pipe(res);
 
