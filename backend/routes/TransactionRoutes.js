@@ -244,7 +244,7 @@ router.get("/receipt/token/:transactionId", async (req, res) => {
 
     res.status(200).json({
       token,
-      downloadUrl: `http://localhost:5000/transactions/receipt/download?token=${token}`,
+      downloadUrl: `${req.protocol}://${req.get("host")}/transactions/receipt/download?token=${token}`,
     });
   } catch (error) {
     console.error("Error generating receipt token:", error);

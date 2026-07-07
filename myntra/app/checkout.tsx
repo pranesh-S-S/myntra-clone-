@@ -70,6 +70,9 @@ export default function Checkout() {
       setIsLoadingCart(true);
       const res = await axios.get(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000'}/cart/${user._id}`);
       setCart(res.data);
+      if (!res.data || !res.data.items || res.data.items.length === 0) {
+        router.replace("/");
+      }
     } catch (error) {
       console.log("Error loading cart for checkout:", error);
     } finally {
